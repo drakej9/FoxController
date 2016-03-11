@@ -12,6 +12,9 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.Media.Core;
+using Windows.Media.Playback;
+using Windows.Storage;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -22,6 +25,7 @@ namespace FoxController
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        MediaPlayer player;
         private struct Tone
         {
             private string name;
@@ -47,6 +51,7 @@ namespace FoxController
         public MainPage()
         {
             this.InitializeComponent();
+            this.initializeGpio();
         }
 
         private void initializeGpio()
@@ -74,9 +79,11 @@ namespace FoxController
 
         }
 
-        private void playTone(Tone tone)
+        private async void playTone(Tone tone)
         {
-
+            StorageFile file = await StorageFile.GetFileFromPathAsync(tone.getPath());
+            player.SetFileSource(file);
+            player.Play();
         }
         
 
