@@ -28,10 +28,11 @@ namespace FoxController
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        MediaPlayer player;
         MediaElement mediaElement = new MediaElement();
         private const int BUTTON_PIN = 4;
         private GpioPin buttonPin;
+        SpeechSynthesisStream idStream;
+        private string id = "This is the C A L L S I G N fox transmitter.";
         private struct Tone
         {
             private string name;
@@ -58,6 +59,7 @@ namespace FoxController
         {
             this.InitializeComponent();
             this.initializeGpio();
+            this.initializeId();
         }
 
         private void initializeGpio()
@@ -65,11 +67,10 @@ namespace FoxController
             var gpio = GpioController.GetDefault();
             // Show an error if there is no GPIO controller
 
-            //if (gpio == null)
-            //{
-            //    gpioStatus.Text = "There is no GPIO controller on this device.";
-            //    return;
-            //}
+            if (gpio == null)
+            {
+                return;
+            }
 
             buttonPin = gpio.OpenPin(BUTTON_PIN);
 
@@ -86,9 +87,18 @@ namespace FoxController
 
         }
 
+        private async void initializeId()
+        {
+            var synth = new SpeechSynthesizer();
+            idStream = await synth.SynthesizeTextToStreamAsync(id);
+        }
+
         private void respondToIdSwitch(GpioPin sender, GpioPinValueChangedEventArgs e)
         {
-            playId();
+            var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                playId();
+            });
         }
 
         private void respondToStartStopSwitch()
@@ -96,11 +106,9 @@ namespace FoxController
 
         }
 
-        private async void playId()
+        private void playId()
         {
-            var synth = new Windows.Media.SpeechSynthesis.SpeechSynthesizer();
-            SpeechSynthesisStream stream = await synth.SynthesizeTextToStreamAsync("This is the C A L L S I G N fox transmitter.");
-            mediaElement.SetSource(stream, stream.ContentType);
+            mediaElement.SetSource(idStream, idStream.ContentType);
             mediaElement.Play();
         }
 
@@ -109,12 +117,12 @@ namespace FoxController
 
         }
 
-        private async void playTone(Tone tone)
-        {
-            StorageFile file = await StorageFile.GetFileFromPathAsync(tone.getPath());
-            player.SetFileSource(file);
-            player.Play();
-        }
+        //private async void playTone(Tone tone)
+        //{
+        //    StorageFile file = await StorageFile.GetFileFromPathAsync(tone.getPath());
+        //    mediaElement.SetFileSource(file);
+        //    mediaElement.Play();
+        //}
         
 
     }
